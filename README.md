@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Logo/Logo.png" width="100%" alt="InfiChat Dashboard">
+  <img src="cover.png" width="100%" alt="InfiChat Cover">
 </p>
 
 <p align="center">
