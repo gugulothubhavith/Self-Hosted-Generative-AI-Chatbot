@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="cover.png" width="100%" alt="InfiChat">
+  <img src="Logo/Logo.png" width="100%" alt="InfiChat Dashboard">
 </p>
 
 <p align="center">
-  <img src="frontend/dist/app_name.png" height="60" alt="InfiChat">
+  <img src="frontend/public/app_name.png" height="60" alt="InfiChat Logo">
 </p>
 
 <p align="center">
