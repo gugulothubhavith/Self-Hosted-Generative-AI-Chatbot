@@ -27,6 +27,32 @@
 
 ---
 
+> [!IMPORTANT]
+> **🔒 Proprietary Source Code Notice**
+>
+> This repository is **source-available** for reference and setup purposes only.
+> The **core business logic** — including all backend API handlers, services, database models, schemas, and all frontend/admin-frontend source code — is **intentionally excluded** from this public repository to protect intellectual property.
+>
+> **What's included in this repo:**
+> - `README.md`, `setup_windows.ps1`, `start_all.bat`, `install_dependencies.bat` — setup & docs
+> - `backend/requirements.txt`, `backend/Dockerfile` — dependency & container configs
+> - `frontend/package.json`, `frontend/vite.config.ts` — frontend configuration
+> - `admin-frontend/package.json` — admin UI configuration
+> - `.env.example` — environment variable template
+> - `infra/`, `sandbox/` — infrastructure and Docker sandbox configs
+>
+> **What's NOT included (hidden via `.gitignore`):**
+> - `backend/app/` — All Python source code (API routes, services, models, schemas, core logic)
+> - `frontend/src/` — All React/TypeScript frontend source code
+> - `admin-frontend/src/` — All admin dashboard source code
+> - `TTS and STT/` — Voice synthesis and speech recognition logic and assets
+> - `Logo/` — Proprietary high-resolution branding assets
+> - `check_project.py`, `backend/fix_db_schema.py`, `backend/schema.sql` — Proprietary automation and database scripts
+>
+> For licensing, collaboration, or access inquiries, please contact the author directly.
+
+---
+
 ## 📑 Table of Contents
 
 - [🛡️ Our Mission](#️-our-mission)
@@ -166,6 +192,18 @@ Enterprise-grade identity and access management:
 
 ---
 
+### 🎛️ Enterprise Admin Dashboard
+
+A centralized, real-time command center for managing the entire AI platform ecosystem:
+
+- **Live Hardware Monitoring** — Watch physical CPU and RAM utilization in real-time
+- **Governance & User Control** — Block, enable, or promote users to Super Admin
+- **Privacy & Security Center** — Toggle PII scrubbing, rotate encryption keys, and download database backups directly
+- **Command Palette** — Instantly search the user registry and perform quick actions (`⌘K`)
+- **Action Required Approvals** — Two-person authorization system for high-risk actions
+
+---
+
 ### 🖼️ Image Generation
 
 - AI-powered image generation via **Pollinations API** or a locally hosted **Stable Diffusion XL**
@@ -181,7 +219,8 @@ graph TD
     User["👤 User (Browser)"]
 
     subgraph "Frontend Layer"
-        UI["React 18 + TypeScript + Vite\n(Port 5173)"]
+        UI["Main UI (React 18)\n(Port 5173)"]
+        AdminUI["Admin GUI (React 18)\n(Port 5174)"]
     end
 
     subgraph "API Gateway"
@@ -214,7 +253,9 @@ graph TD
     end
 
     User --> UI
+    User --> AdminUI
     UI <-->|"HTTP / SSE / WebSocket"| API
+    AdminUI <-->|"HTTP / REST API"| API
     API --> RL --> JWT
     JWT --> Router
     Router --> LLM
@@ -438,6 +479,7 @@ docker compose up --build
 | Service              | URL                         |
 | :------------------- | :-------------------------- |
 | **Frontend UI**      | http://localhost:5173       |
+| **Admin GUI**        | http://localhost:5174       |
 | **Backend API**      | http://localhost:8000       |
 | **Swagger API Docs** | http://localhost:8000/docs  |
 | **ReDoc API Docs**   | http://localhost:8000/redoc |
@@ -569,6 +611,13 @@ Self-Hosted-Generative-AI-Chatbot/
 │   ├── vite.config.ts              # Vite configuration
 │   └── package.json                # Node.js dependencies
 │
+├── ⚛️  admin-frontend/              # Dedicated Admin Dashboard GUI
+│   ├── src/
+│   │   ├── components/             # Admin layouts, charts, command palette
+│   │   ├── pages/                  # Dashboard, Governance, Security
+│   │   ├── hooks/                  # Permission & Auth hooks
+│   └── package.json                # Node.js dependencies
+│
 ├── 🐳 sandbox/                     # Code execution Docker environment
 ├── 🔊 TTS and STT/                 # Voice model assets
 ├── 🏗️  infra/                       # Infrastructure configuration
@@ -682,6 +731,12 @@ services:
     restart: unless-stopped
     ports:
       - "5173:80"
+
+  admin-frontend:
+    build: ./admin-frontend
+    restart: unless-stopped
+    ports:
+      - "5174:80"
 
   postgres:
     image: postgres:16-alpine

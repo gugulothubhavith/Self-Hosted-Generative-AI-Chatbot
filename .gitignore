@@ -68,3 +68,28 @@ temp/
 tmp/
 logs/
 *.log
+
+# --- Proprietary Source Code (NOT for public distribution) ---
+# Core backend business logic
+backend/app/
+backend/models/
+backend/fix_db_schema.py
+backend/schema.sql
+backend/backend_errors.log
+backend/uploads/
+check_project.py
+
+# Core frontend source
+frontend/src/
+
+# Core admin frontend source
+admin-frontend/src/
+
+# Voice and TTS Assets/Service
+TTS and STT/
+
+# Proprietary assets
+Logo/
+
+# Voice and TTS Assets/Service
+TTS and STT/

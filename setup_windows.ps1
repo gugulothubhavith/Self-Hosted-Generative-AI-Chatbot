@@ -90,10 +90,23 @@ foreach ($d in $dirs) {
 if (Get-Command python -ErrorAction SilentlyContinue) {
     Write-Host "Downloading models (Embeddings)..." -ForegroundColor Yellow
     try {
-        python -c "from transformers import AutoModel; import os; os.environ['HF_HOME'] = './data/models'; print('Downloading BGE-Large...'); AutoModel.from_pretrained('BAAI/bge-large-en-v1.5'); print('Done.')"
+        $ModelDir = "data\models\models--BAAI--bge-large-en-v1.5"
+        if (-Not (Test-Path $ModelDir)) {
+            # Check if transformers is installed, install if not
+            python -c "import transformers" 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "  Installing required Python packages (transformers, sentence-transformers)..." -ForegroundColor Gray
+                python -m pip install transformers sentence-transformers --quiet
+            }
+            python -c "from transformers import AutoModel; import os; os.environ['HF_HOME'] = './data/models'; print('Downloading BGE-Large...'); AutoModel.from_pretrained('BAAI/bge-large-en-v1.5'); print('Done.')"
+        }
+        else {
+            Write-Host "  BGE-Large model cache already exists. Skipping pre-download." -ForegroundColor Green
+        }
     }
     catch {
         Write-Warning "Failed to download models via Python. Docker services might handle this."
+        $_.Exception | Out-String | Write-Host -ForegroundColor Gray
     }
 }
 else {
@@ -103,12 +116,23 @@ else {
 # 4. Start Docker Compose
 Write-Host "Starting Docker services..." -ForegroundColor Cyan
 Set-Location -Path (Join-Path $PSScriptRoot "infra")
-docker-compose up -d --build
+
+# Fix: Prevent PowerShell from stopping on Docker warnings (like "version is obsolete")
+$oldPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+
+# Start containers without forcing rebuild/recreate
+Write-Host "  Starting containers (utilizing cache if available)..." -ForegroundColor Gray
+docker-compose up -d --remove-orphans
+
+# Restore preference
+$ErrorActionPreference = $oldPreference
 Set-Location -Path $PSScriptRoot
 
 Write-Host "`nAI Platform is starting!" -ForegroundColor Green
 Write-Host "Services will be available at:"
-Write-Host "  Frontend:    http://localhost:5173"
+Write-Host "  Main UI:     http://localhost:5173"
+Write-Host "  Admin GUI:   http://localhost:5174"
 Write-Host "  Backend:     http://localhost:8000"
 Write-Host "  Swagger:     http://localhost:8000/docs"
 
@@ -138,11 +162,13 @@ while ($retryCount -lt $maxRetries) {
 
 if ($backendReady) {
     Write-Host "Backend is ready!" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "Backend wait timed out, opening anyway..." -ForegroundColor Red
 }
 
-Start-Process "http://localhost:5173"       # Frontend
+Start-Process "http://localhost:5173"       # Main Frontend
+Start-Process "http://localhost:5174"       # Admin GUI
 Start-Sleep -Seconds 1
 Start-Process "http://localhost:8000/docs"  # Swagger UI
 

@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   postgres:
@@ -14,7 +14,7 @@ services:
       - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ai -d autoagent"]
+      test: [ "CMD-SHELL", "pg_isready -U ai -d autoagent" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,7 +28,7 @@ services:
       - "6379:6379"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -100,9 +100,26 @@ services:
     ports:
       - "80:80"
       - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://backend:8000
     volumes:
       - C:/Users/gugul/Desktop/Self-Hosted Generative AI Chatbot/frontend:/app
       - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  admin-frontend:
+    build:
+      context: ../admin-frontend
+      dockerfile: Dockerfile
+    container_name: ai-admin-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5174:80"
+    environment:
+      - VITE_API_URL=http://backend:8000
     restart: unless-stopped
     networks:
       - ai-network
@@ -126,6 +143,7 @@ volumes:
   chromadb_data:
   huggingface_models:
   sandbox_data:
+
 
 networks:
   ai-network:
